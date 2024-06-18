@@ -14,8 +14,10 @@ parser.add_argument("--runname", type=str, required=False)
 parser.add_argument("--projectname", type=str, required=False)
 parser.add_argument("--alpha", type=float, default=0.5)
 parser.add_argument("--beta", type=float, default=0.5)
+parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--logging", help="Enable verbose mode", action="store_true")
 parser.add_argument("--nottest", help="Enable verbose mode", action="store_true")
+
 
 args = parser.parse_args()
 
@@ -25,6 +27,7 @@ runname = args.runname
 projectname = args.projectname
 arg_logging = args.logging
 arg_nottest = args.nottest
+
 
 if arg_logging:
     wandb.init(project=projectname, entity="saraa_team", name=runname)
@@ -45,7 +48,7 @@ val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=1)
 model = Network(1)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
-epochs = 10
+epochs = args.epochs
 
 for epoch in range(0, epochs):
   
