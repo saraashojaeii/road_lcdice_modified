@@ -147,7 +147,7 @@ for epoch in range(0, epochs):
     if not(arg_nottest):
         break
 
-  val_average = total_val_miou / val_count
+  val_average = total_val_loss / val_count
   total_val_class_iou = val_class_iou / val_count
 
   val_comm_avg = total_val_comm / val_count
@@ -158,6 +158,6 @@ for epoch in range(0, epochs):
   print('\n', f"val_class_iou: {total_val_class_iou}, Val_mIoU: {val_average*100}")
   print('\n', f"val_comm_avg: {val_comm_avg}, val_corr_avg: {val_corr_avg}, val_qual_avg: {val_qual_avg}")
   if arg_logging:
-      wandb.log({"Epoch": epoch+1, "Training Loss": train_average, "Validation Loss": val_average, "val_class_iou": total_val_class_iou, "Val_mIoU": val_average*100, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg})
+      wandb.log({"Training Loss": train_average, "Validation Loss": val_average, "Val_mIoU": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg})
 
 
