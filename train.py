@@ -7,6 +7,10 @@ from tqdm import tqdm
 import wandb
 import argparse
 
+random.seed(0)
+np.random.seed(0)
+torch.manual_seed(0)
+
 parser = argparse.ArgumentParser(description="A script with argparse options")
 
 # Add an argument for an integer option
