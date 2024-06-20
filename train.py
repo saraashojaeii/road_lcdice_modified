@@ -157,6 +157,7 @@ for epoch in range(0, epochs):
   print(f"Epoch: {epoch+1}, Training_loss: {train_average}, Validation_loss: {val_average}")
   print('\n', f"val_class_iou: {total_val_class_iou}, Val_mIoU: {val_average*100}")
   print('\n', f"val_comm_avg: {val_comm_avg}, val_corr_avg: {val_corr_avg}, val_qual_avg: {val_qual_avg}")
+    
   if arg_logging:
       wandb.log({"Training Loss": train_average, "Validation Loss": val_average, "Val_mIoU": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg})
       os.makedirs('../saved_models', exist_ok=True)
