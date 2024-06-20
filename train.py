@@ -57,7 +57,9 @@ epochs = args.epochs
 
 for epoch in range(0, epochs):
   
-  loss_function = TverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+  # loss_function = TverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+  loss_function = TverskyCrossEntropyDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+    
   lrr = 1e-4
   
   optimizer = torch.optim.Adam(model.parameters(), lr=lrr, weight_decay=1e-3)
