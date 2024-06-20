@@ -163,7 +163,7 @@ for epoch in range(0, epochs):
       wandb.log({"Training Loss": train_average, "Validation Loss": val_average, "Val_mIoU": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg})
       os.makedirs('../saved_models', exist_ok=True)
       torch.save(model.state_dict(), f'../saved_models/SemSeg_combinedloss_a{arg_alpha}b{arg_beta}_epoch_{epoch+1}.pth')
-      artifact = wandb.Artifact(f'model_epoch_{epoch+1}', type='model')
-      artifact.add_file(f'../saved_models/model_epoch_{epoch+1}.pth')
+      artifact = wandb.Artifact(f'SemSeg_combinedloss_a{arg_alpha}b{arg_beta}_epoch{epoch+1}', type='model')
+      artifact.add_file(f'../saved_models/SemSeg_combinedloss_a{arg_alpha}b{arg_beta}_epoch{epoch+1}.pth')
       wandb.log_artifact(artifact)
 
