@@ -199,7 +199,75 @@ class TverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
         total_loss = (self.cel * ce_seg) + (self.ftl * tv) + lcd
         return total_loss
 
+class TverskyCrossEntropyDiceWeightedLoss(nn.Module):
+    def __init__(self, num_classes, alpha, beta, phi, cel, ftl):
+        super(TverskyCrossEntropyDiceWeightedLoss, self).__init__()
+        self.num_classes = num_classes
+        self.alpha = alpha
+        self.beta = beta
+        self.phi = phi
+        self.cel = cel
+        self.ftl = ftl
 
+    def tversky_loss(self, true, logits, alpha, beta, eps=1e-7):
+       
+        num_classes = logits.shape[1]
+        if num_classes == 1:
+            true_1_hot = torch.eye(num_classes + 1).cuda()[true.long().squeeze(1)]
+            true_1_hot = true_1_hot.permute(0, 3, 1, 2).float()
+            true_1_hot_f = true_1_hot[:, 0:1, :, :]
+            true_1_hot_s = true_1_hot[:, 1:2, :, :]
+            true_1_hot = torch.cat([true_1_hot_s, true_1_hot_f], dim=1)
+            pos_prob = torch.sigmoid(logits)
+            neg_prob = 1 - pos_prob
+            probas = torch.cat([pos_prob, neg_prob], dim=1)
+        else:
+            device = true.device  
+            true = true.squeeze(1).long()
+            true_1_hot = torch.eye(num_classes, device=device)[true.squeeze(1)]
+            true_1_hot = true_1_hot.permute(0, 3, 1, 2).float()
+            probas = F.softmax(logits, dim=1)
+        true_1_hot = true_1_hot.type(logits.type())
+        dims = (0,) + tuple(range(2, true.ndimension()))
+        intersection = torch.sum(probas * true_1_hot, dims)
+        fps = torch.sum(probas * (1 - true_1_hot), dims)
+        fns = torch.sum((1 - probas) * true_1_hot, dims)
+        num = intersection
+        denom = intersection + (alpha * fps) + (beta * fns)
+        tversky_loss = (num / (denom + eps)).mean()
+        return (1 - tversky_loss)**self.phi
+    
+
+    def weights(self, pred, target, epsilon = 1e-6):
+        pred_class = torch.argmax(pred, dim = 1)
+        d = np.ones(self.num_classes)
+    
+        for c in range(self.num_classes):
+            t = 0
+            t = (target == c).sum()
+            d[c] = t
+            
+        d = d/d.sum()
+        d = 1 - d
+        return torch.from_numpy(d).float()
+    
+
+    
+    def forward(self, pred, target):
+        if self.cel + self.ftl != 1:
+            raise ValueError('Cross Entropy weight and Tversky weight should sum to 1')
+        
+        loss_seg = nn.CrossEntropyLoss(weight = self.weights(pred, target).cuda())
+        target_squeezed = torch.squeeze(target, 1)
+        target_squeezed = target_squeezed.long()
+        ce_seg = loss_seg(pred, target_squeezed)
+        
+
+        tv = self.tversky_loss(target, pred, alpha=self.alpha, beta=self.beta)
+        
+        total_loss = (self.cel * ce_seg) + (self.ftl * tv)
+
+        return total_loss
 
 class GapLoss(nn.Module):
     def __init__(self, K=60):
