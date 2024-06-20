@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import wandb
+import random
 import argparse
 
 random.seed(0)
