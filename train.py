@@ -58,7 +58,7 @@ epochs = args.epochs
 for epoch in range(0, epochs):
   
   # loss_function = TverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
-  loss_function = TverskyCrossEntropyL2WeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+  loss_function = AdaptiveTverskyCrossEntropyWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
   # loss_function = TverskyCrossEntropyDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
     
   lrr = 1e-4
