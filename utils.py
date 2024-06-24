@@ -82,7 +82,7 @@ class BCEWithDiceLoss(nn.Module):
 
 class AdaptiveTverskyCrossEntropyWeightedLoss(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl, K=3):
-        super(TverskyCrossEntropyLcDiceWeightedLoss, self).__init__()
+        super(AdaptiveTverskyCrossEntropyWeightedLoss, self).__init__()
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
