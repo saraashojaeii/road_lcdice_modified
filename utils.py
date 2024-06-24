@@ -166,9 +166,6 @@ class AdaptiveTverskyCrossEntropyWeightedLoss(nn.Module):
         pred_weighted = self.GapMat(pred, target)
         tv = self.tversky_loss(target, pred_weighted, alpha=self.alpha, beta=self.beta)
         
-        # Ensure the target for lc_dice_loss is in the same shape as predictions
-        lcd = self.lc_dice_loss(pred, target)
-        
         total_loss = (self.cel * ce_seg) + (self.ftl * tv)
         return total_loss
 
