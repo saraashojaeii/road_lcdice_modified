@@ -169,6 +169,41 @@ class AdaptiveTverskyCrossEntropyWeightedLoss(nn.Module):
         total_loss = (self.cel * ce_seg) + (self.ftl * tv)
         return total_loss
 
+class LcDiceLoss(nn.Module):
+    def __init__(self):
+        super(LcDiceLoss, self).__init__()
+
+    def lc_dice_loss(self, inputs, targets, alpha=1.0, beta=1.0):
+        inputs = torch.sigmoid(inputs)  # Apply sigmoid to get probabilities
+        
+        # Ensure inputs and targets have the same shape
+        if inputs.shape != targets.shape:
+            targets = F.one_hot(targets.squeeze(1).long(), num_classes=inputs.shape[1])
+            targets = targets.permute(0, 3, 1, 2).float()
+        
+        # Flatten the tensors using reshape
+        inputs = inputs.reshape(inputs.size(0), -1)
+        targets = targets.reshape(targets.size(0), -1)
+        
+        # Log-Cosh loss
+        log_cosh = torch.log(torch.cosh(inputs - targets))
+        log_cosh_loss = torch.mean(log_cosh)
+        
+        # Dice loss
+        intersection = (inputs * targets).sum(dim=1)
+        dice_loss = 1 - (2. * intersection + 1) / (inputs.sum(dim=1) + targets.sum(dim=1) + 1)
+        dice_loss = dice_loss.mean()
+        
+        # lcDice loss
+        lc_dice_loss = alpha * log_cosh_loss + beta * dice_loss
+        return lc_dice_loss
+
+    def forward(self, pred, target):
+        
+        lcd = self.lc_dice_loss(pred, target)
+        
+        return lcd
+
 
 class TverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl, K=3):
