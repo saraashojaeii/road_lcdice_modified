@@ -209,10 +209,11 @@ class LcDiceLoss(nn.Module):
 class BCEWithlcDiceLoss(nn.Module):
     def __init__(self):
         super().__init__()
-        self.bce = nn.BCELoss()
 
-    def forward(self, y_pred, y_true):
-        return self.bce(y_pred, y_true) + LcDiceLoss()(y_pred, y_true)
+    def forward(self, pred, target):
+        target_squeezed = target.squeeze(1).long()
+        loss_seg = nn.CrossEntropyLoss(weight=self.weights(pred, target).cuda())
+        return loss_seg + LcDiceLoss()(pred, target)
 
 
 
