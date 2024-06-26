@@ -17,6 +17,7 @@ parser = argparse.ArgumentParser(description="A script with argparse options")
 # Add an argument for an integer option
 parser.add_argument("--runname", type=str, required=False)
 parser.add_argument("--projectname", type=str, required=False)
+parser.add_argument("--loss", type=str, required=False)
 parser.add_argument("--alpha", type=float, default=0.5)
 parser.add_argument("--beta", type=float, default=0.5)
 parser.add_argument("--epochs", type=int, default=100)
@@ -25,7 +26,7 @@ parser.add_argument("--nottest", help="Enable verbose mode", action="store_true"
 
 
 args = parser.parse_args()
-
+arg_loss = args.loss
 arg_alpha = args.alpha
 arg_beta = args.beta
 runname = args.runname
@@ -56,11 +57,16 @@ model.to(device)
 epochs = args.epochs
 
 for epoch in range(0, epochs):
-  
-  # loss_function = TverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
-  loss_function = AdaptiveTverskyCrossEntropyWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.5, 0.5)
-  # loss_function = TverskyCrossEntropyDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
-    
+
+  if arg_loss == 'tvloss':
+      loss_function = TverskyCrossEntropyDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+  if arg_loss == 'ourbce':
+      loss_function = AdaptiveTverskyCrossEntropyWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+  if arg_loss == 'ourlc':
+      loss_function = TverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+  if arg_loss == 'lcdice':
+      loss_function = LcDiceLoss()
+ 
   lrr = 1e-4
   
   optimizer = torch.optim.Adam(model.parameters(), lr=lrr, weight_decay=1e-3)
