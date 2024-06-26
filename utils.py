@@ -212,8 +212,8 @@ class BCEWithlcDiceLoss(nn.Module):
         
     def weights(self, pred, target, epsilon=1e-6):
         pred_class = torch.argmax(pred, dim=1)
-        d = np.ones(self.num_classes)
-        for c in range(self.num_classes):
+        d = np.ones(2)
+        for c in range(2):
             t = (target == c).sum()
             d[c] = t
         d = d / d.sum()
