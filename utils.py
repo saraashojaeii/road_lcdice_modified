@@ -80,6 +80,8 @@ class BCEWithDiceLoss(nn.Module):
     def forward(self, y_pred, y_true):
         return self.bce(y_pred, y_true) + DiceLoss()(y_pred, y_true)
 
+
+
 class AdaptiveTverskyCrossEntropyWeightedLoss(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl, K=3):
         super(AdaptiveTverskyCrossEntropyWeightedLoss, self).__init__()
@@ -203,6 +205,15 @@ class LcDiceLoss(nn.Module):
         lcd = self.lc_dice_loss(pred, target)
         
         return lcd
+
+class BCEWithlcDiceLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.bce = nn.BCELoss()
+
+    def forward(self, y_pred, y_true):
+        return self.bce(y_pred, y_true) + LcDiceLoss()(y_pred, y_true)
+
 
 
 class TverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
