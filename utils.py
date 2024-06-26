@@ -199,7 +199,7 @@ class LcDiceLoss(nn.Module):
         # lcDice loss
         lc_dice_loss = alpha * log_cosh_loss + beta * dice_loss
         return lc_dice_loss
-
+    
     def forward(self, pred, target):
         
         lcd = self.lc_dice_loss(pred, target)
@@ -209,7 +209,17 @@ class LcDiceLoss(nn.Module):
 class BCEWithlcDiceLoss(nn.Module):
     def __init__(self):
         super().__init__()
-
+        
+    def weights(self, pred, target, epsilon=1e-6):
+        pred_class = torch.argmax(pred, dim=1)
+        d = np.ones(self.num_classes)
+        for c in range(self.num_classes):
+            t = (target == c).sum()
+            d[c] = t
+        d = d / d.sum()
+        d = 1 - d
+        return torch.from_numpy(d).float()
+        
     def forward(self, pred, target):
         target_squeezed = target.squeeze(1).long()
         loss_seg = nn.CrossEntropyLoss(weight=self.weights(pred, target).cuda())
