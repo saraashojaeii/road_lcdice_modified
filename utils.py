@@ -46,6 +46,48 @@ def mIoU(pred, target, num_classes):
     miou = np.mean(iou)
     return miou, iou
 
+def relaxed_f1(pred, gt, buffer):
+    ''' Usage and Call
+    # rp_tp, rr_tp, pred_p, gt_p = relaxed_f1(predicted.cpu().numpy(), labels.cpu().numpy(), buffer = 3)
+
+    # rprecision_tp += rp_tp
+    # rrecall_tp += rr_tp
+    # pred_positive += pred_p
+    # gt_positive += gt_p
+
+    # precision = rprecision_tp/(gt_positive + 1e-12)
+    # recall = rrecall_tp/(gt_positive + 1e-12)
+    # f1measure = 2*precision*recall/(precision + recall + 1e-12)
+    # iou = precision*recall/(precision+recall-(precision*recall) + 1e-12)
+    '''
+
+    rprecision_tp, rrecall_tp, pred_positive, gt_positive = 0, 0, 0, 0
+    # for b in range(pred.shape[0]):
+    pred_sk = skeletonize(pred)
+    gt_sk = skeletonize(gt)
+        # pred_sk = pred[b]
+    # gt_sk = gt[b]
+
+    #The correctness represents the percentage of correctly extracted road data, i.e., the percentage
+    #of the extracted data which lie within the buffer around the reference network (groudn truth):
+    rprecision_tp += get_relaxed_precision(pred_sk, gt_sk, buffer)
+
+    #The completeness is the percentage of the reference data which is explained by the extracted
+    #data, i.e., the percentage of the reference network which lie within the buffer around the
+    #extracted data (prediction):
+    rrecall_tp += get_relaxed_precision(gt_sk, pred_sk, buffer)
+    pred_positive += len(np.where(pred_sk == 1)[0])
+    gt_positive += len(np.where(gt_sk == 1)[0])
+
+    #Correctness corresponds to relaxed precision
+    #Completeness corresponds to relaxed recall 
+    #Quality corresponds to intersection-over-union
+
+    comm= rrecall_tp/(gt_positive + 1e-12) #length of matched reference/ length of reference
+    corr= rprecision_tp/(pred_positive + 1e-12)   #length of matched extraction/ length of extraction
+    qul = (comm*corr )/(comm- (comm*corr) + corr+ 1e-12)
+    return comm*100, corr*100, qul*100
+
 
 def dice_loss(score, target):
     target = target.float()
@@ -79,7 +121,6 @@ class BCEWithDiceLoss(nn.Module):
 
     def forward(self, y_pred, y_true):
         return self.bce(y_pred, y_true) + DiceLoss()(y_pred, y_true)
-
 
 
 class AdaptiveTverskyCrossEntropyWeightedLoss(nn.Module):
@@ -206,28 +247,8 @@ class LcDiceLoss(nn.Module):
         
         return lcd
 
-class BCEWithlcDiceLoss(nn.Module):
-    def __init__(self):
-        super().__init__()
-        
-    def weights(self, pred, target, epsilon=1e-6):
-        pred_class = torch.argmax(pred, dim=1)
-        d = np.ones(2)
-        for c in range(2):
-            t = (target == c).sum()
-            d[c] = t
-        d = d / d.sum()
-        d = 1 - d
-        return torch.from_numpy(d).float()
-        
-    def forward(self, pred, target):
-        target_squeezed = target.squeeze(1).long()
-        loss_seg = nn.CrossEntropyLoss(weight=self.weights(pred, target).cuda())
-        return loss_seg + LcDiceLoss()(pred, target)
 
-
-
-class TverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
+class AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl, K=3):
         super(TverskyCrossEntropyLcDiceWeightedLoss, self).__init__()
         self.num_classes = num_classes
@@ -345,6 +366,7 @@ class TverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
         total_loss = (self.cel * ce_seg) + (self.ftl * tv) + lcd
         return total_loss
 
+
 class TverskyCrossEntropyDiceWeightedLoss(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl):
         super(TverskyCrossEntropyDiceWeightedLoss, self).__init__()
@@ -383,7 +405,6 @@ class TverskyCrossEntropyDiceWeightedLoss(nn.Module):
         tversky_loss = (num / (denom + eps)).mean()
         return (1 - tversky_loss)**self.phi
     
-
     def weights(self, pred, target, epsilon = 1e-6):
         pred_class = torch.argmax(pred, dim = 1)
         d = np.ones(self.num_classes)
@@ -395,9 +416,7 @@ class TverskyCrossEntropyDiceWeightedLoss(nn.Module):
             
         d = d/d.sum()
         d = 1 - d
-        return torch.from_numpy(d).float()
-    
-
+        return torch.from_numpy(d).float(
     
     def forward(self, pred, target):
         if self.cel + self.ftl != 1:
@@ -407,8 +426,6 @@ class TverskyCrossEntropyDiceWeightedLoss(nn.Module):
         target_squeezed = torch.squeeze(target, 1)
         target_squeezed = target_squeezed.long()
         ce_seg = loss_seg(pred, target_squeezed)
-        
-
         tv = self.tversky_loss(target, pred, alpha=self.alpha, beta=self.beta)
         
         total_loss = (self.cel * ce_seg) + (self.ftl * tv)
@@ -459,6 +476,7 @@ class GapLoss(nn.Module):
         loss = torch.mean(W * L)
         return output
 
+
 class GapLosswithL2(nn.Module):
     def __init__(self):
         super().__init__()
@@ -477,44 +495,3 @@ def get_relaxed_precision(a, b, buffer):
     return tp
 
 
-def relaxed_f1(pred, gt, buffer):
-    ''' Usage and Call
-    # rp_tp, rr_tp, pred_p, gt_p = relaxed_f1(predicted.cpu().numpy(), labels.cpu().numpy(), buffer = 3)
-
-    # rprecision_tp += rp_tp
-    # rrecall_tp += rr_tp
-    # pred_positive += pred_p
-    # gt_positive += gt_p
-
-    # precision = rprecision_tp/(gt_positive + 1e-12)
-    # recall = rrecall_tp/(gt_positive + 1e-12)
-    # f1measure = 2*precision*recall/(precision + recall + 1e-12)
-    # iou = precision*recall/(precision+recall-(precision*recall) + 1e-12)
-    '''
-
-    rprecision_tp, rrecall_tp, pred_positive, gt_positive = 0, 0, 0, 0
-    # for b in range(pred.shape[0]):
-    pred_sk = skeletonize(pred)
-    gt_sk = skeletonize(gt)
-        # pred_sk = pred[b]
-    # gt_sk = gt[b]
-
-    #The correctness represents the percentage of correctly extracted road data, i.e., the percentage
-    #of the extracted data which lie within the buffer around the reference network (groudn truth):
-    rprecision_tp += get_relaxed_precision(pred_sk, gt_sk, buffer)
-
-    #The completeness is the percentage of the reference data which is explained by the extracted
-    #data, i.e., the percentage of the reference network which lie within the buffer around the
-    #extracted data (prediction):
-    rrecall_tp += get_relaxed_precision(gt_sk, pred_sk, buffer)
-    pred_positive += len(np.where(pred_sk == 1)[0])
-    gt_positive += len(np.where(gt_sk == 1)[0])
-
-    #Correctness corresponds to relaxed precision
-    #Completeness corresponds to relaxed recall 
-    #Quality corresponds to intersection-over-union
-
-    comm= rrecall_tp/(gt_positive + 1e-12) #length of matched reference/ length of reference
-    corr= rprecision_tp/(pred_positive + 1e-12)   #length of matched extraction/ length of extraction
-    qul = (comm*corr )/(comm- (comm*corr) + corr+ 1e-12)
-    return comm*100, corr*100, qul*100
