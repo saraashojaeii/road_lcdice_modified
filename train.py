@@ -65,7 +65,8 @@ for epoch in range(0, epochs):
   if arg_loss == 'ourlc':
       loss_function = TverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
   if arg_loss == 'lcdice':
-      loss_function = LcDiceLoss()
+      # loss_function = LcDiceLoss()
+      loss_function = BCEWithlcDiceLoss()
  
   lrr = 1e-4
   
