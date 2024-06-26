@@ -63,10 +63,9 @@ for epoch in range(0, epochs):
   if arg_loss == 'ourbce':
       loss_function = AdaptiveTverskyCrossEntropyWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
   if arg_loss == 'ourlc':
-      loss_function = TverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+      loss_function = AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
   if arg_loss == 'lcdice':
-      # loss_function = LcDiceLoss()
-      loss_function = BCEWithlcDiceLoss()
+      loss_function = LcDiceLoss()
  
   lrr = 1e-4
   
@@ -165,12 +164,9 @@ for epoch in range(0, epochs):
   val_corr_avg = total_val_corr / val_count
   val_qual_avg = total_val_qual / val_count
 
-  print(f"Epoch: {epoch+1}, Training_loss: {train_average}, Validation_loss: {val_average}")
-  print('\n', f"val_class_iou: {total_val_class_iou}, Val_mIoU: {val_average*100}")
-  print('\n', f"val_comm_avg: {val_comm_avg}, val_corr_avg: {val_corr_avg}, val_qual_avg: {val_qual_avg}")
-    
+
   if arg_logging:
-      wandb.log({"Training Loss": train_average, "Validation Loss": val_average, "Val_mIoU": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg})
+      wandb.log({"Training Loss": train_average, "Validation Loss": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg})
       os.makedirs('../saved_models', exist_ok=True)
       torch.save(model.state_dict(), f'../saved_models/SemSeg_combinedloss_epoch{epoch+1}.pth')
       artifact = wandb.Artifact(f'SemSeg_combinedloss_epoch{epoch+1}', type='model')
