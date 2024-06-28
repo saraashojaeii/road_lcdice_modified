@@ -417,7 +417,7 @@ class TverskyCrossEntropyDiceWeightedLoss(nn.Module):
             
         d = d/d.sum()
         d = 1 - d
-        return torch.from_numpy(d).float(
+        return torch.from_numpy(d).float()
     
     def forward(self, pred, target):
         if self.cel + self.ftl != 1:
