@@ -250,7 +250,7 @@ class LcDiceLoss(nn.Module):
 
 class AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl, lcl, K=3):
-        super(TverskyCrossEntropyLcDiceWeightedLoss, self).__init__()
+        super(AdaptiveTverskyCrossEntropyLcDiceWeightedLoss, self).__init__()
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
