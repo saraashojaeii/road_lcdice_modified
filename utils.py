@@ -249,7 +249,7 @@ class LcDiceLoss(nn.Module):
 
 
 class AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
-    def __init__(self, num_classes, alpha, beta, phi, cel, ftl, K=3):
+    def __init__(self, num_classes, alpha, beta, phi, cel, ftl, lcl, K=3):
         super(TverskyCrossEntropyLcDiceWeightedLoss, self).__init__()
         self.num_classes = num_classes
         self.alpha = alpha
@@ -257,6 +257,7 @@ class AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
         self.phi = phi
         self.cel = cel
         self.ftl = ftl
+        self.lcl = lcl
         self.K = K
 
     def lc_dice_loss(self, inputs, targets, alpha=1.0, beta=1.0):
@@ -350,7 +351,7 @@ class AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
         return output
 
     def forward(self, pred, target):
-        if self.cel + self.ftl != 1:
+        if self.cel + self.ftl + self.lcl != 1:
             raise ValueError('Cross Entropy weight and Tversky weight should sum to 1')
         
         target_squeezed = target.squeeze(1).long()
@@ -363,7 +364,7 @@ class AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
         # Ensure the target for lc_dice_loss is in the same shape as predictions
         lcd = self.lc_dice_loss(pred, target)
         
-        total_loss = (self.cel * ce_seg) + (self.ftl * tv) + lcd
+        total_loss = (self.cel * ce_seg) + (self.ftl * tv) + (self.lcl * lcd)
         return total_loss
 
 
