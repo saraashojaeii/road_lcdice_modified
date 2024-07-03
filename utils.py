@@ -627,7 +627,7 @@ class AdaptiveTverskyLcDiceDistanceWeightedLoss(nn.Module):
         return output
 
     def forward(self, pred, target):
-        if self.cel + self.ftl + self.lcl != 1:
+        if (self.cel + self.ftl + self.lcl) != 1:
             raise ValueError('Cross Entropy weight and Tversky weight should sum to 1')
         
         target_squeezed = target.squeeze(1).long()
