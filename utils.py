@@ -577,54 +577,56 @@ class AdaptiveTverskyLcDiceDistanceWeightedLoss(nn.Module):
         target = target.squeeze(1).long()
         L = criterion(pred, target)
         A = torch.argmax(pred, dim=1)
-
-        distance_transform = distance_transform_edt(A == 0)
+    
+        # Ensure the tensor is on the CPU before converting to numpy
+        A_cpu = A.cpu().numpy()
+        distance_transform = distance_transform_edt(A_cpu == 0)
         threshold = 10
         # Apply the threshold
         distance_transform[distance_transform > threshold] = threshold
         # Invert the distance transform
-        distance_transform_inverted = ((threshold - distance_transform)/threshold)
+        distance_transform_inverted = ((threshold - distance_transform) / threshold)
         # Normalize for visualization
         A2 = cv2.normalize(distance_transform_inverted, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-
-        A_np = A.cpu().numpy()
-        B = np.zeros_like(A_np)
-        for n in range(A_np.shape[0]):
-            temp = skeletonize(A_np[n])
+    
+        B = np.zeros_like(A_cpu)
+        for n in range(A_cpu.shape[0]):
+            temp = skeletonize(A_cpu[n])
             temp = np.where(temp == True, 1, 0)
             B[n] = temp
         B = torch.from_numpy(B).to(pred.device).double()
         B = torch.unsqueeze(B, dim=1)
-
+    
         kernel = torch.ones((1, 1, 3, 3), dtype=torch.double).to(pred.device)
         kernel[0][0][1][1] = 0
-
+    
         C = F.conv2d(B, weight=kernel, bias=None, stride=1, padding=1, dilation=1, groups=1)
         C = torch.mul(B, C)
         C = torch.where(C == 1, 1, 0).double()
-
+    
         kernel = torch.ones((1, 1, 9, 9), dtype=torch.double).to(pred.device)
-
+    
         N = F.conv2d(C, weight=kernel, bias=None, stride=1, padding=4, dilation=1, groups=1)
         N = N * self.K
-
+    
         temp = torch.where(N == 0, 1, 0)
         W1 = N + temp
-
+    
         W1[W1 == 1] = 0 
-        A2 = A2/255.0
-
-        A2_tensor = torch.tensor(A2, dtype=torch.double)
+        A2 = A2 / 255.0
+    
+        A2_tensor = torch.tensor(A2, dtype=torch.double).to(pred.device)
         A2_tensor = torch.unsqueeze(A2_tensor, dim=0).unsqueeze(dim=0)
         W1 = W1.squeeze(0).squeeze(0)
         W2 = torch.mul(A2_tensor, W1)
-
+    
         temp2 = torch.where(W2 == 0, 1, 0)
         W = W2 + temp2
-
+    
         output = W * L
         loss = torch.mean(W * L)
         return output
+
 
     def forward(self, pred, target):
         # print(self.cel + self.ftl + self.lcl)
