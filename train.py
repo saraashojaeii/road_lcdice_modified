@@ -66,6 +66,8 @@ for epoch in range(0, epochs):
       loss_function = AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0, 0.2)
   if arg_loss == 'lcdice':
       loss_function = LcDiceLoss()
+  if arg_loss == 'ourdistlc':
+     loss_function = AdaptiveTverskyLcDiceDistanceWeightedLoss()
  
   lrr = 1e-4
   
