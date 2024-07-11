@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(description="A script with argparse options")
 # Add an argument for an integer option
 parser.add_argument("--runname", type=str, required=False)
 parser.add_argument("--projectname", type=str, required=False)
-parser.add_argument("--loss", type=str, required=False)
+# parser.add_argument("--loss", type=str, required=False)
 parser.add_argument("--alpha", type=float, default=0.5)
 parser.add_argument("--beta", type=float, default=0.5)
 parser.add_argument("--epochs", type=int, default=100)
@@ -26,7 +26,7 @@ parser.add_argument("--nottest", help="Enable verbose mode", action="store_true"
 
 
 args = parser.parse_args()
-arg_loss = args.loss
+# arg_loss = args.loss
 arg_alpha = args.alpha
 arg_beta = args.beta
 runname = args.runname
@@ -58,18 +58,19 @@ epochs = args.epochs
 
 for epoch in range(0, epochs):
 
-  if arg_loss == 'tvloss':
-      loss_function = TverskyCrossEntropyDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
-  if arg_loss == 'ourbce':
-      loss_function = AdaptiveTverskyCrossEntropyWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
-  if arg_loss == 'ourlc':
-      loss_function = AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0, 0.2)
-  if arg_loss == 'lcdice':
-      loss_function = LcDiceLoss()
-  if arg_loss == 'ourdistlc':
-     loss_function = AdaptiveTverskyLcDiceDistanceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 1, 0, 0)
+  # if arg_loss == 'tvloss':
+  #     loss_function = TverskyCrossEntropyDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+  # if arg_loss == 'ourbce':
+  #     loss_function = AdaptiveTverskyCrossEntropyWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+  # if arg_loss == 'ourlc':
+  #     loss_function = AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0, 0.2)
+  # if arg_loss == 'lcdice':
+  #     loss_function = LcDiceLoss()
+  # if arg_loss == 'ourdistlc':
+  #    loss_function = AdaptiveTverskyLcDiceDistanceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 1, 0, 0)
   
- 
+  gap_loss_fn = GapLoss(K=3)
+  mse_loss_fn = nn.MSELoss()
   lrr = 1e-4
   
   optimizer = torch.optim.Adam(model.parameters(), lr=lrr, weight_decay=1e-3)
@@ -104,8 +105,11 @@ for epoch in range(0, epochs):
     optimizer.zero_grad()
       
     mask, x = model(train_x)
-    loss = loss_function(mask, train_y)
-      
+    # loss = loss_function(mask, train_y)
+    gap_loss = gap_loss_fn(mask, train_y)
+    mse_loss = mse_loss_fn(mask, train_y)
+    
+    loss = gap_loss + mse_loss
     total_train_loss += loss.item()
 
     loss.backward()
@@ -125,7 +129,11 @@ for epoch in range(0, epochs):
 
     with torch.no_grad():
       mask, x = model(val_x)
-      val_loss = loss_function(mask, val_y)
+      # val_loss = loss_function(mask, val_y)
+      gap_loss = gap_loss_fn(mask, val_y)
+      mse_loss = mse_loss_fn(mask, val_y)
+
+      val_loss = gap_loss + mse_loss
 
     total_val_loss += val_loss.item()
       
