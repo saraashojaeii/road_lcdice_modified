@@ -111,7 +111,7 @@ for epoch in range(0, epochs):
     # mse_loss = mse_loss_fn(mask, train_y)
     
     # loss = gap_loss + mse_loss
-    total_train_loss += loss.item()
+    # total_train_loss += loss.item()
 
     loss.backward()
     optimizer.step()
@@ -131,12 +131,13 @@ for epoch in range(0, epochs):
     with torch.no_grad():
       mask, x = model(val_x)
       val_loss = loss_function(mask, val_y)
+      total_val_loss += val_loss.item()
       # gap_loss = gap_loss_fn(mask, val_y)
       # mse_loss = mse_loss_fn(mask, val_y)
 
       # val_loss = gap_loss + mse_loss
 
-    total_val_loss += val_loss.item()
+        
       
     x = x.detach()
     mask = mask.detach()
@@ -169,7 +170,7 @@ for epoch in range(0, epochs):
     if not(arg_nottest):
         break
 
-  val_average = total_val_loss / val_count
+  val_average = total_val_loss / 18
   total_val_class_iou = val_class_iou / val_count
 
   val_comm_avg = total_val_comm / val_count
