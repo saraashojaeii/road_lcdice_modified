@@ -78,9 +78,7 @@ for epoch in range(0, epochs):
 
   total_train_loss = 0
   train_count = 0
-    
   total_val_loss = 0
-  val_average = 0
   val_count = 0    
 
   for sample in tqdm(train_loader):
@@ -118,12 +116,12 @@ for epoch in range(0, epochs):
       mask, x = model(val_x)
       val_loss = loss_function(mask, val_y)
     
-      total_val_loss += val_loss.item()
       # gap_loss = gap_loss_fn(mask, val_y)
       # mse_loss = mse_loss_fn(mask, val_y)
-
       # val_loss = gap_loss + mse_loss
+      
     val_count += 1
+    total_val_loss += val_loss.item()
       
     if not(arg_nottest):
         break
