@@ -15,23 +15,23 @@ def data_pred(DATA_DIR, str='train', dataset='mass'):
     images = os.path.join(DATA_DIR, str)
     masks = os.path.join(DATA_DIR, str + '_labels')
 
-    if dataset=='mass'
+    if dataset=='mass':
         image_paths = glob.glob(os.path.join(images, '*.tiff'))
         label_paths = glob.glob(os.path.join(masks, '*.tif'))
 
-    elif dataset=='cityscale'
+    elif dataset=='cityscale':
         image_paths = glob.glob(os.path.join(images, '*_sat.png'))
         label_paths = glob.glob(os.path.join(masks, '*_gt.png'))
 
-    elif dataset=='deepglobe'
+    elif dataset=='deepglobe':
         image_paths = glob.glob(os.path.join(images, '*_sat.jpg'))
         label_paths = glob.glob(os.path.join(masks, '*_mask.png'))
 
-    elif dataset=='equa'
+    elif dataset=='equa':
         image_paths = glob.glob(os.path.join(images, '*.png'))
         label_paths = glob.glob(os.path.join(masks, '*.png'))
 
-    elif dataset=='spacenet'
+    elif dataset=='spacenet':
         image_paths = glob.glob(os.path.join(images, '*_rgb.png'))
         label_paths = glob.glob(os.path.join(masks, '*_gt.png'))
 
