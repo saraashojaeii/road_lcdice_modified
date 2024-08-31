@@ -10,7 +10,7 @@ from torch.nn.modules.loss import *
 from scipy.ndimage import distance_transform_edt
 
 
-def data_pred(DATA_DIR, str='train', dataset):
+def data_pred(DATA_DIR, str='train', dataset='mass'):
 
     images = os.path.join(DATA_DIR, str)
     masks = os.path.join(DATA_DIR, str + '_labels')
