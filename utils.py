@@ -10,13 +10,30 @@ from torch.nn.modules.loss import *
 from scipy.ndimage import distance_transform_edt
 
 
-def data_pred(DATA_DIR, str='train'):
+def data_pred(DATA_DIR, str='train', dataset):
 
     images = os.path.join(DATA_DIR, str)
     masks = os.path.join(DATA_DIR, str + '_labels')
 
-    image_paths = glob.glob(os.path.join(images, '*.tiff'))
-    label_paths = glob.glob(os.path.join(masks, '*.tif'))
+    if dataset=='mass'
+        image_paths = glob.glob(os.path.join(images, '*.tiff'))
+        label_paths = glob.glob(os.path.join(masks, '*.tif'))
+
+    elif dataset=='cityscale'
+        image_paths = glob.glob(os.path.join(images, '*_sat.png'))
+        label_paths = glob.glob(os.path.join(masks, '*_gt.png'))
+
+    elif dataset=='deepglobe'
+        image_paths = glob.glob(os.path.join(images, '*_sat.jpg'))
+        label_paths = glob.glob(os.path.join(masks, '*_mask.png'))
+
+    elif dataset=='equa'
+        image_paths = glob.glob(os.path.join(images, '*.png'))
+        label_paths = glob.glob(os.path.join(masks, '*.png'))
+
+    elif dataset=='spacenet'
+        image_paths = glob.glob(os.path.join(images, '*_rgb.png'))
+        label_paths = glob.glob(os.path.join(masks, '*_gt.png'))
 
     image_paths.sort()
     label_paths.sort()
