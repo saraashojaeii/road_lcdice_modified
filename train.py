@@ -131,7 +131,8 @@ for epoch in range(0, epochs):
     with torch.no_grad():
       mask, x = model(val_x)
       val_loss = loss_function(mask, val_y)
-      total_val_loss += val_loss.item()
+    
+  total_val_loss += val_loss.item()
       # gap_loss = gap_loss_fn(mask, val_y)
       # mse_loss = mse_loss_fn(mask, val_y)
 
