@@ -80,22 +80,8 @@ for epoch in range(0, epochs):
   train_count = 0
     
   total_val_loss = 0
-  val_count = 0
-    
-  total_val_miou = 0
   val_average = 0
-  val_count = 0
-  val_miou = 0    
-  val_class_iou = 0
-  total_val_class_iou = 0
-    
-  val_comm = 0
-  val_corr = 0
-  val_qual = 0
-  total_val_comm = 0
-  total_val_corr = 0
-  total_val_qual = 0
-    
+  val_count = 0    
 
   for sample in tqdm(train_loader):
     model.train()
@@ -132,53 +118,18 @@ for epoch in range(0, epochs):
       mask, x = model(val_x)
       val_loss = loss_function(mask, val_y)
     
-    total_val_loss += val_loss.item()
+      total_val_loss += val_loss.item()
       # gap_loss = gap_loss_fn(mask, val_y)
       # mse_loss = mse_loss_fn(mask, val_y)
 
       # val_loss = gap_loss + mse_loss
-
-        
-      
-    x = x.detach()
-    mask = mask.detach()
-      
-    mask = torch.argmax(mask, dim=1).detach().cpu().numpy()  
-    val_y = val_y.squeeze().detach().cpu().numpy()  
-    mask = mask.squeeze(0)
-
-    comm, corr, qual = relaxed_f1(mask, val_y, 3)
-    tmiou, ciou = mIoU(mask, val_y, 2)
-
-    val_miou += tmiou
-    val_class_iou += ciou
-
-    val_comm += comm
-    val_corr += corr
-    val_qual += qual
-
-    total_val_comm += val_comm
-    total_val_corr += val_corr
-    total_val_qual += val_qual
-
-    total_val_miou += val_miou
-    val_miou = 0
-    val_comm = 0
-    val_corr = 0
-    val_qual = 0
     val_count += 1
       
     if not(arg_nottest):
         break
 
-  val_average = total_val_loss / 18
-  total_val_class_iou = val_class_iou / val_count
-
-  val_comm_avg = total_val_comm / val_count
-  val_corr_avg = total_val_corr / val_count
-  val_qual_avg = total_val_qual / val_count
-
-
+  val_average = total_val_loss / val_count
+  
   if arg_logging:
       wandb.log({"Training Loss": train_average, "Validation Loss": val_average})
       os.makedirs('../saved_models', exist_ok=True)
