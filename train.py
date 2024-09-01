@@ -93,6 +93,8 @@ for epoch in range(0, epochs):
       
     mask, x = model(train_x)
     loss = loss_function(mask, train_y)
+    print(loss)
+    print(loss.shape)
     # gap_loss = gap_loss_fn(mask, train_y)
     # mse_loss = mse_loss_fn(mask, train_y)
     
