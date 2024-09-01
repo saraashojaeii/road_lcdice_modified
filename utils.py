@@ -491,9 +491,9 @@ class GapLoss(nn.Module):
         N = N * self.K
         temp = torch.where(N == 0, 1, 0)
         W = N + temp
-        output = W * L
+
         loss = torch.mean(W * L)
-        return output
+        return loss
 
 
 class GapLosswithL2(nn.Module):
