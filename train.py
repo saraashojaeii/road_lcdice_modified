@@ -68,7 +68,7 @@ for epoch in range(0, epochs):
   if arg_loss == 'lcdice':
       loss_function = LcDiceLoss()
   if arg_loss == 'ourdistlc':
-     loss_function = AdaptiveTverskyLcDiceDistanceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.7, 0.2, 0.1)
+     loss_function = AdaptiveTverskyLcDiceDistanceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2, 0)
   
   # gap_loss_fn = GapLoss(K=3)
   # mse_loss_fn = nn.MSELoss()
