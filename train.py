@@ -70,7 +70,7 @@ for epoch in range(0, epochs):
   if arg_loss == 'ourdistlc':
      loss_function = AdaptiveTverskyLcDiceDistanceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2, 0)
   if arg_loss == 'gap':
-     loss_function = GapLoss(K=1)
+     loss_function = GapLosswithL2(K=1)
   
   # gap_loss_fn = GapLoss(K=3)
   # mse_loss_fn = nn.MSELoss()
