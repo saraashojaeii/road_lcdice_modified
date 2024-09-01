@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser(description="A script with argparse options")
 parser.add_argument("--runname", type=str, required=False)
 parser.add_argument("--projectname", type=str, required=False)
 parser.add_argument("--dataset_name", type=str, required=True)
-parser.add_argument("--loss", type=str, required=False)
+# parser.add_argument("--loss", type=str, required=False)
 parser.add_argument("--alpha", type=float, default=0.5)
 parser.add_argument("--beta", type=float, default=0.5)
 parser.add_argument("--epochs", type=int, default=100)
@@ -27,7 +27,7 @@ parser.add_argument("--nottest", help="Enable verbose mode", action="store_true"
 
 
 args = parser.parse_args()
-arg_loss = args.loss
+# arg_loss = args.loss
 arg_alpha = args.alpha
 arg_beta = args.beta
 runname = args.runname
