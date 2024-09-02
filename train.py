@@ -84,13 +84,7 @@ for epoch in range(0, epochs):
     
   total_val_loss = 0
   val_count = 0
-    
-  total_val_miou = 0
   val_average = 0
-  val_count = 0
-  val_miou = 0    
-  val_class_iou = 0
-  total_val_class_iou = 0
     
   val_comm = 0
   val_corr = 0
@@ -152,9 +146,6 @@ for epoch in range(0, epochs):
     comm, corr, qual = relaxed_f1(mask, val_y, 3)
     tmiou, ciou = mIoU(mask, val_y, 2)
 
-    val_miou += tmiou
-    val_class_iou += ciou
-
     val_comm += comm
     val_corr += corr
     val_qual += qual
@@ -163,8 +154,6 @@ for epoch in range(0, epochs):
     total_val_corr += val_corr
     total_val_qual += val_qual
 
-    total_val_miou += val_miou
-    val_miou = 0
     val_comm = 0
     val_corr = 0
     val_qual = 0
@@ -173,15 +162,14 @@ for epoch in range(0, epochs):
     if not(arg_nottest):
         break
 
-  val_average = total_val_miou / val_count
-  total_val_class_iou = val_class_iou / val_count
+  val_average = total_val_loss / val_count
 
   val_comm_avg = total_val_comm / val_count
   val_corr_avg = total_val_corr / val_count
   val_qual_avg = total_val_qual / val_count
   
   if arg_logging:
-      wandb.log({"Training Loss": train_average, "Validation Loss": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg})
+      wandb.log({"Epoch": (epoch+1), "Training Loss": train_average, "Validation Loss": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg})
       os.makedirs('../saved_models', exist_ok=True)
       torch.save(model.state_dict(), f'../saved_models/SemSeg_combinedloss_epoch{epoch+1}.pth')
       artifact = wandb.Artifact(f'SemSeg_combinedloss_epoch{epoch+1}', type='model')
