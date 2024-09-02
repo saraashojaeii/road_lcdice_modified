@@ -141,9 +141,9 @@ class BCEWithDiceLoss(nn.Module):
         return self.bce(y_pred, y_true) + DiceLoss()(y_pred, y_true)
 
 
-class AdaptiveTverskyCrossEntropyWeightedLoss(nn.Module):
+class BCE_simpSAC(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl, K=3):
-        super(AdaptiveTverskyCrossEntropyWeightedLoss, self).__init__()
+        super(BCE_simpSAC, self).__init__()
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -266,9 +266,9 @@ class LcDiceLoss(nn.Module):
         return lcd
 
 
-class AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
+class BCE_SimpSAC_lcDice(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl, lcl, K=3):
-        super(AdaptiveTverskyCrossEntropyLcDiceWeightedLoss, self).__init__()
+        super(BCE_SimpSAC_lcDice, self).__init__()
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -386,9 +386,9 @@ class AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(nn.Module):
         return total_loss
 
 
-class TverskyCrossEntropyDiceWeightedLoss(nn.Module):
+class BCE_Tversky(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl):
-        super(TverskyCrossEntropyDiceWeightedLoss, self).__init__()
+        super(BCE_Tversky, self).__init__()
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -514,9 +514,9 @@ def get_relaxed_precision(a, b, buffer):
     return tp
 
 
-class AdaptiveTverskyLcDiceDistanceWeightedLoss(nn.Module):
+class BCE_SAC_lcDice(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl, lcl, K=3):
-        super(AdaptiveTverskyLcDiceDistanceWeightedLoss, self).__init__()
+        super(BCE_SAC_lcDice, self).__init__()
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
