@@ -18,9 +18,10 @@ parser = argparse.ArgumentParser(description="A script with argparse options")
 parser.add_argument("--runname", type=str, required=False)
 parser.add_argument("--projectname", type=str, required=False)
 parser.add_argument("--dataset_name", type=str, required=True)
-# parser.add_argument("--loss", type=str, required=False)
-parser.add_argument("--alpha", type=float, default=0.5)
-parser.add_argument("--beta", type=float, default=0.5)
+parser.add_argument("--loss", type=str, required=False)
+parser.add_argument("--k1", type=float, default=0.5)
+parser.add_argument("--k2", type=float, default=0.5)
+parser.add_argument("--k3", type=float, default=0.5)
 parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--logging", help="Enable verbose mode", action="store_true")
 parser.add_argument("--nottest", help="Enable verbose mode", action="store_true")
@@ -28,8 +29,9 @@ parser.add_argument("--nottest", help="Enable verbose mode", action="store_true"
 
 args = parser.parse_args()
 arg_loss = args.loss
-arg_alpha = args.alpha
-arg_beta = args.beta
+arg_k1 = args.k1
+arg_k2 = args.k2
+arg_k3 = args.k3
 runname = args.runname
 projectname = args.projectname
 arg_logging = args.logging
@@ -59,16 +61,16 @@ epochs = args.epochs
 
 for epoch in range(0, epochs):
 
-  if arg_loss == 'tvloss':
-      loss_function = TverskyCrossEntropyDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 1, 1)
-  if arg_loss == 'ourbce':
-      loss_function = AdaptiveTverskyCrossEntropyWeightedLoss(2, arg_alpha, arg_beta, 4/3, 1, 1)
-  if arg_loss == 'ourlc':
-      loss_function = AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 1, 1, 1)
+  if arg_loss == 'BCE_Tversky':
+      loss_function = BCE_Tversky(2, 1, 0.4, 4/3, arg_k1, arg_k2)
+  if arg_loss == 'BCE_simpSAC':
+      loss_function = BCE_simpSAC(2, 1, 0.4, 4/3, arg_k1, arg_k2)
+  if arg_loss == 'BCE_SimpSAC_lcDice':
+      loss_function = BCE_SimpSAC_lcDice(2, 1, 0.4, 4/3, arg_k1, arg_k2, arg_k3)
   if arg_loss == 'lcdice':
       loss_function = LcDiceLoss()
-  if arg_loss == 'ourdistlc':
-     loss_function = AdaptiveTverskyLcDiceDistanceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 1, 1, 1)
+  if arg_loss == 'BCE_SAC_lcDice':
+     loss_function = BCE_SAC_lcDice(2, 1, 0.4, 4/3, arg_k1, arg_k2, arg_k3)
   
   
   # gap_loss_fn = GapLoss(K=1)
