@@ -167,9 +167,10 @@ for epoch in range(0, epochs):
   val_comm_avg = total_val_comm / val_count
   val_corr_avg = total_val_corr / val_count
   val_qual_avg = total_val_qual / val_count
+  val_f1 = 2 * (val_comm_avg * val_corr_avg)/(val_comm_avg + val_corr_avg)
   
   if arg_logging:
-      wandb.log({"Epoch": (epoch+1), "Training Loss": train_average, "Validation Loss": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg})
+      wandb.log({"Epoch": (epoch+1), "Training Loss": train_average, "Validation Loss": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg, "val_f1": val_f1})
       os.makedirs('../saved_models', exist_ok=True)
       torch.save(model.state_dict(), f'../saved_models/SemSeg_combinedloss_epoch{epoch+1}.pth')
       artifact = wandb.Artifact(f'SemSeg_combinedloss_epoch{epoch+1}', type='model')
