@@ -27,7 +27,7 @@ parser.add_argument("--nottest", help="Enable verbose mode", action="store_true"
 
 
 args = parser.parse_args()
-# arg_loss = args.loss
+arg_loss = args.loss
 arg_alpha = args.alpha
 arg_beta = args.beta
 runname = args.runname
@@ -59,29 +59,43 @@ epochs = args.epochs
 
 for epoch in range(0, epochs):
 
-  # if arg_loss == 'tvloss':
-  #     loss_function = TverskyCrossEntropyDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
-  # if arg_loss == 'ourbce':
-  #     loss_function = AdaptiveTverskyCrossEntropyWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
-  # if arg_loss == 'ourlc':
-  #     loss_function = AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.7, 0.2, 0.1)
-  # if arg_loss == 'lcdice':
-  #     loss_function = LcDiceLoss()
-  # if arg_loss == 'ourdistlc':
-  #    loss_function = AdaptiveTverskyLcDiceDistanceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2, 0)
-  # if arg_loss == 'gap':
-  #    loss_function = GapLoss(K=1)
+  if arg_loss == 'tvloss':
+      loss_function = TverskyCrossEntropyDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+  if arg_loss == 'ourbce':
+      loss_function = AdaptiveTverskyCrossEntropyWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2)
+  if arg_loss == 'ourlc':
+      loss_function = AdaptiveTverskyCrossEntropyLcDiceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.7, 0.2, 0.1)
+  if arg_loss == 'lcdice':
+      loss_function = LcDiceLoss()
+  if arg_loss == 'ourdistlc':
+     loss_function = AdaptiveTverskyLcDiceDistanceWeightedLoss(2, arg_alpha, arg_beta, 4/3, 0.8, 0.2, 0)
   
-  gap_loss_fn = GapLoss(K=1)
-  mse_loss_fn = nn.MSELoss()
+  
+  # gap_loss_fn = GapLoss(K=1)
+  # mse_loss_fn = nn.MSELoss()
   lrr = 1e-4
   
   optimizer = torch.optim.Adam(model.parameters(), lr=lrr, weight_decay=1e-3)
 
   total_train_loss = 0
   train_count = 0
+    
   total_val_loss = 0
-  val_count = 0    
+  val_count = 0
+    
+  total_val_miou = 0
+  val_average = 0
+  val_count = 0
+  val_miou = 0    
+  val_class_iou = 0
+  total_val_class_iou = 0
+    
+  val_comm = 0
+  val_corr = 0
+  val_qual = 0
+  total_val_comm = 0
+  total_val_corr = 0
+  total_val_qual = 0    
 
   for sample in tqdm(train_loader):
     model.train()
@@ -92,13 +106,13 @@ for epoch in range(0, epochs):
     optimizer.zero_grad()
       
     mask, x = model(train_x)
-    # loss = loss_function(mask, train_y)
+    loss = loss_function(mask, train_y)
     # print(loss)
     # print(loss.shape)
-    gap_loss = gap_loss_fn(mask, train_y)
-    mse_loss = mse_loss_fn(mask, train_y)
+    # gap_loss = gap_loss_fn(mask, train_y)
+    # mse_loss = mse_loss_fn(mask, train_y)
     
-    loss = gap_loss + mse_loss
+    # loss = gap_loss + mse_loss
 
     loss.backward()
     optimizer.step()
@@ -117,22 +131,55 @@ for epoch in range(0, epochs):
 
     with torch.no_grad():
       mask, x = model(val_x)
-      # val_loss = loss_function(mask, val_y)
+      val_loss = loss_function(mask, val_y)
     
-      gap_loss = gap_loss_fn(mask, val_y)
-      mse_loss = mse_loss_fn(mask, val_y)
-      val_loss = gap_loss + mse_loss
+      # gap_loss = gap_loss_fn(mask, val_y)
+      # mse_loss = mse_loss_fn(mask, val_y)
+      # val_loss = gap_loss + mse_loss
       
     val_count += 1
     total_val_loss += val_loss.item()
       
+    x = x.detach()
+    mask = mask.detach()
+      
+    mask = torch.argmax(mask, dim=1).detach().cpu().numpy()  
+    val_y = val_y.squeeze().detach().cpu().numpy()  
+    mask = mask.squeeze(0)
+
+    comm, corr, qual = relaxed_f1(mask, val_y, 3)
+    tmiou, ciou = mIoU(mask, val_y, 2)
+
+    val_miou += tmiou
+    val_class_iou += ciou
+
+    val_comm += comm
+    val_corr += corr
+    val_qual += qual
+
+    total_val_comm += val_comm
+    total_val_corr += val_corr
+    total_val_qual += val_qual
+
+    total_val_miou += val_miou
+    val_miou = 0
+    val_comm = 0
+    val_corr = 0
+    val_qual = 0
+    val_count += 1
+      
     if not(arg_nottest):
         break
 
-  val_average = total_val_loss / val_count
+  val_average = total_val_miou / val_count
+  total_val_class_iou = val_class_iou / val_count
+
+  val_comm_avg = total_val_comm / val_count
+  val_corr_avg = total_val_corr / val_count
+  val_qual_avg = total_val_qual / val_count
   
   if arg_logging:
-      wandb.log({"Training Loss": train_average, "Validation Loss": val_average})
+      wandb.log({"Training Loss": train_average, "Validation Loss": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg})
       os.makedirs('../saved_models', exist_ok=True)
       torch.save(model.state_dict(), f'../saved_models/SemSeg_combinedloss_epoch{epoch+1}.pth')
       artifact = wandb.Artifact(f'SemSeg_combinedloss_epoch{epoch+1}', type='model')
