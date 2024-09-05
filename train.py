@@ -184,7 +184,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import wandb
 
-wandb.init(project="modified_SemSeg_deepglobe", entity="saraa_team", name='gap_test_pod')
+wandb.init(project="modified_SemSeg_deepglobe", entity="saraa_team", name='gap')
 
 data_path = '/root/home/MD/'
 # data_path = '/home/sara/Docker_file/massachusetts-roads-dataset/'
