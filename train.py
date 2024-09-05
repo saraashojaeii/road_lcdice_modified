@@ -59,6 +59,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 epochs = args.epochs
 
+gap_loss_fn = GapLoss(K=1)
+mse_loss_fn = nn.MSELoss()
+
 for epoch in range(0, epochs):
 
   # if arg_loss == 'BCE_Tversky':
@@ -72,9 +75,6 @@ for epoch in range(0, epochs):
   # if arg_loss == 'BCE_SAC_lcDice':
   #    loss_function = BCE_SAC_lcDice(2, 1, 0.4, 4/3, arg_k1, arg_k2, arg_k3)
   
-  
-  gap_loss_fn = GapLoss(K=1)
-  mse_loss_fn = nn.MSELoss()
   lrr = 1e-4
   
   optimizer = torch.optim.Adam(model.parameters(), lr=lrr, weight_decay=1e-3)
