@@ -157,7 +157,6 @@ for epoch in range(0, epochs):
     val_comm = 0
     val_corr = 0
     val_qual = 0
-    val_count += 1
       
     if not(arg_nottest):
         break
