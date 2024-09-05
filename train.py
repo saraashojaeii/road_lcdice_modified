@@ -19,9 +19,9 @@ parser.add_argument("--runname", type=str, required=False)
 parser.add_argument("--projectname", type=str, required=False)
 parser.add_argument("--dataset_name", type=str, required=True)
 parser.add_argument("--loss", type=str, required=False)
-parser.add_argument("--k1", type=float, default=0.5)
-parser.add_argument("--k2", type=float, default=0.5)
-parser.add_argument("--k3", type=float, default=0.5)
+parser.add_argument("--k1", type=float, default=0.5, required=False)
+parser.add_argument("--k2", type=float, default=0.5, required=False)
+parser.add_argument("--k3", type=float, default=0.5, required=False)
 parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--logging", help="Enable verbose mode", action="store_true")
 parser.add_argument("--nottest", help="Enable verbose mode", action="store_true")
@@ -61,20 +61,20 @@ epochs = args.epochs
 
 for epoch in range(0, epochs):
 
-  if arg_loss == 'BCE_Tversky':
-      loss_function = BCE_Tversky(2, 1, 0.4, 4/3, arg_k1, arg_k2)
-  if arg_loss == 'BCE_simpSAC':
-      loss_function = BCE_simpSAC(2, 1, 0.4, 4/3, arg_k1, arg_k2)
-  if arg_loss == 'BCE_SimpSAC_lcDice':
-      loss_function = BCE_SimpSAC_lcDice(2, 1, 0.4, 4/3, arg_k1, arg_k2, arg_k3)
-  if arg_loss == 'lcdice':
-      loss_function = LcDiceLoss()
-  if arg_loss == 'BCE_SAC_lcDice':
-     loss_function = BCE_SAC_lcDice(2, 1, 0.4, 4/3, arg_k1, arg_k2, arg_k3)
+  # if arg_loss == 'BCE_Tversky':
+  #     loss_function = BCE_Tversky(2, 1, 0.4, 4/3, arg_k1, arg_k2)
+  # if arg_loss == 'BCE_simpSAC':
+  #     loss_function = BCE_simpSAC(2, 1, 0.4, 4/3, arg_k1, arg_k2)
+  # if arg_loss == 'BCE_SimpSAC_lcDice':
+  #     loss_function = BCE_SimpSAC_lcDice(2, 1, 0.4, 4/3, arg_k1, arg_k2, arg_k3)
+  # if arg_loss == 'lcdice':
+  #     loss_function = LcDiceLoss()
+  # if arg_loss == 'BCE_SAC_lcDice':
+  #    loss_function = BCE_SAC_lcDice(2, 1, 0.4, 4/3, arg_k1, arg_k2, arg_k3)
   
   
-  # gap_loss_fn = GapLoss(K=1)
-  # mse_loss_fn = nn.MSELoss()
+  gap_loss_fn = GapLoss(K=1)
+  mse_loss_fn = nn.MSELoss()
   lrr = 1e-4
   
   optimizer = torch.optim.Adam(model.parameters(), lr=lrr, weight_decay=1e-3)
@@ -102,13 +102,13 @@ for epoch in range(0, epochs):
     optimizer.zero_grad()
       
     mask, x = model(train_x)
-    loss = loss_function(mask, train_y)
+    # loss = loss_function(mask, train_y)
     # print(loss)
     # print(loss.shape)
-    # gap_loss = gap_loss_fn(mask, train_y)
-    # mse_loss = mse_loss_fn(mask, train_y)
+    gap_loss = gap_loss_fn(mask, train_y)
+    mse_loss = mse_loss_fn(mask, train_y)
     
-    # loss = gap_loss + mse_loss
+    loss = gap_loss + mse_loss
 
     loss.backward()
     optimizer.step()
@@ -127,11 +127,11 @@ for epoch in range(0, epochs):
 
     with torch.no_grad():
       mask, x = model(val_x)
-      val_loss = loss_function(mask, val_y)
+      # val_loss = loss_function(mask, val_y)
     
-      # gap_loss = gap_loss_fn(mask, val_y)
-      # mse_loss = mse_loss_fn(mask, val_y)
-      # val_loss = gap_loss + mse_loss
+      gap_loss = gap_loss_fn(mask, val_y)
+      mse_loss = mse_loss_fn(mask, val_y)
+      val_loss = gap_loss + mse_loss
       
     val_count += 1
     total_val_loss += val_loss.item()
