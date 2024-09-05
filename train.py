@@ -197,13 +197,13 @@ num_gpus = accelerator.state.num_processes
 
 if logging:
     if accelerator.is_main_process:
-      wandb.init(project="modified_SemSeg_deepglobe", entity="saraa_team", name='gap_4gpu')
+      wandb.init(project="modified_SemSeg_spacenet", entity="saraa_team", name='gap_4gpu_test')
 
 data_path = '/root/home/MD/'
 # data_path = '/home/sara/Docker_file/massachusetts-roads-dataset/'
 
-train_images, train_masks = data_pred(data_path, 'train', 'deepglobe')
-val_images, val_masks = data_pred(data_path, 'val', 'deepglobe')
+train_images, train_masks = data_pred(data_path, 'train', 'spacenet')
+val_images, val_masks = data_pred(data_path, 'val', 'spacenet')
 
 train_dataset = DataPrep(train_images, train_masks, transform=transform)
 val_dataset = DataPrep(val_images, val_masks, transform=transform)
