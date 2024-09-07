@@ -500,9 +500,10 @@ class GapLosswithL2(nn.Module):
     def __init__(self):
         super().__init__()
         self.l2 = nn.MSELoss()
+        self.gap = GapLoss(K=1)
 
     def forward(self, y_pred, y_true):
-        return self.l2(y_pred, y_true) + GapLoss(K=1)(y_pred, y_true)
+        return self.l2(y_pred, y_true) + self.gap(y_pred, y_true)
 
 def get_relaxed_precision(a, b, buffer):
     tp = 0
