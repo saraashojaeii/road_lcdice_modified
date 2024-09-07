@@ -197,7 +197,7 @@ num_gpus = accelerator.state.num_processes
 
 if logging:
     if accelerator.is_main_process:
-      wandb.init(project="modified_SemSeg_spacenet", entity="saraa_team", name='gap_4gpu_test')
+      wandb.init(project="modified_SemSeg_spacenet", entity="saraa_team", name='gap_4gpu_new')
 
 data_path = '/root/home/MD/'
 # data_path = '/home/sara/Docker_file/massachusetts-roads-dataset/'
