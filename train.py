@@ -1,6 +1,7 @@
 from utils import *
 from data import *
 from Network import *
+from losses import *
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
