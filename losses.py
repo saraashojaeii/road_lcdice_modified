@@ -634,22 +634,15 @@ class BCE_SACone_lcDice(nn.Module):
         return torch.from_numpy(d).float()
 
     def ConeMat(self, pred, target):
-        criterion = nn.CrossEntropyLoss(reduction='none')
+        criterion = torch.nn.CrossEntropyLoss(reduction='none')
         target = target.squeeze(1).long()
         L = criterion(pred, target)
         A = torch.argmax(pred, dim=1)
-    
+
         # Ensure the tensor is on the CPU before converting to numpy
         A_cpu = A.cpu().numpy()
-        distance_transform = distance_transform_edt(A_cpu == 0)
-        threshold = 10
-        # Apply the threshold
-        distance_transform[distance_transform > threshold] = threshold
-        # Invert the distance transform
-        distance_transform_inverted = ((threshold - distance_transform) / threshold)
-        # Normalize for visualization
-        A2 = cv2.normalize(distance_transform_inverted, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-    
+
+        # Stage 1: Skeletonization
         B = np.zeros_like(A_cpu)
         for n in range(A_cpu.shape[0]):
             temp = skeletonize(A_cpu[n])
@@ -658,42 +651,45 @@ class BCE_SACone_lcDice(nn.Module):
         B = torch.from_numpy(B).to(pred.device).double()
         B = torch.unsqueeze(B, dim=1)
 
-        kernel = np.ones((1, 1, 3, 3), dtype=torch.double).to(pred.device)
+        # Stage 2: Calculate endpoints
+        kernel = torch.ones((1, 1, 3, 3), dtype=torch.float64).to(pred.device)
         kernel[0][0][1][1] = 0
-    
-        C = F.conv2d(B, weight=kernel, bias=None, stride=1, padding=1, dilation=1, groups=1)
+
+        C = torch.nn.functional.conv2d(B, weight=kernel, bias=None, stride=1, padding=1, dilation=1, groups=1)
         C = torch.mul(B, C)
         C = torch.where(C == 1, 1, 0).double()
-    
-        kernel = torch.ones((1, 1, 9, 9), dtype=torch.double).to(pred.device)
-        cone_kernel = create_cone_kernel(15, intensity_center=1.0).astype(torch.double).to(pred.device)
-        rotated_kernel = rotate_kernel(kernel, angle)
-        N = F.conv2d(C, weight=kernel, bias=None, stride=1, padding=4, dilation=1, groups=1)
-        N = N * self.K
-    
-        temp = torch.where(N == 0, 1, 0)
-        W1 = N + temp
-    
-        W1[W1 == 1] = 0 
-        A2 = A2 / 255.0
-    
-        A2_tensor = torch.tensor(A2, dtype=torch.double).to(pred.device)
-        A2_tensor = torch.unsqueeze(A2_tensor, dim=0).unsqueeze(dim=0)
-        W1 = W1.squeeze(0).squeeze(0)
-        W2 = torch.mul(A2_tensor, W1)
-    
-        temp2 = torch.where(W2 == 0, 1, 0)
-        W = W2 + temp2
+
+        B_cpu = B.cpu().numpy()
+        C_cpu = C.cpu().numpy()
+
+        rest_mask = B_cpu - C_cpu
+        # Stage 3: Calculate angles and place cones
+        endpoints = np.argwhere(C_cpu == 1)  
+
+        angles = []
+        for endpoint in endpoints:
+            # Get the angle at each endpoint
+            point_on_line = find_nearest_skeleton_point(endpoint, rest_mask)
+
+            angle = calculate_angle_at_endpoint(endpoint, point_on_line)
+            angles.append((endpoint, angle))
+
+        cone_kernel = create_cone_kernel(15, intensity_center=1.0)
+
+        new_mask = np.zeros_like(B_cpu[0])
+        for endpoint, angle in angles:
+            new_mask = place_rotated_cone(endpoint, angle, cone_kernel, new_mask)
+
+        new_mask_tensor = torch.from_numpy(new_mask).to(pred.device)
+
+        temp = torch.where(new_mask_tensor == 0, 1, 0)
+        W = new_mask + temp
     
         output = W * L
-        loss = torch.mean(W * L)
+
         return output
 
-
     def forward(self, pred, target):
-        # print(self.cel + self.ftl + self.lcl)
-        # if (self.cel + self.ftl + self.lcl) != 1:
-        #     raise ValueError('Cross Entropy weight and Tversky weight should sum to 1')
         
         target_squeezed = target.squeeze(1).long()
         loss_seg = nn.CrossEntropyLoss(weight=self.weights(pred, target).cuda())

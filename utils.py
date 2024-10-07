@@ -9,6 +9,8 @@ from skimage.morphology import skeletonize
 from torch.nn.modules.loss import *
 from scipy.ndimage import distance_transform_edt
 from scipy.spatial import distance
+from scipy.ndimage import sobel
+from scipy.ndimage import rotate
 
 
 def data_pred(DATA_DIR, str='train', dataset='mass'):
@@ -118,6 +120,32 @@ def dice_loss(score, target):
     loss = 1 - score
     return loss, score
 
+
+def find_nearest_skeleton_point(endpoint, skeleton_mask):
+    
+    skeleton_points = np.argwhere(skeleton_mask > 0)
+    nearest_point = skeleton_points[distance.cdist([endpoint], skeleton_points).argmin()]
+
+    return nearest_point
+
+
+def calculate_angle_at_endpoint(point1, point2):
+    delta_y = point2[-2] - point1[-2]
+    delta_x = point2[-1] - point1[-1]
+    angle_rad = np.arctan2(delta_y, delta_x)  
+    angle_deg = np.degrees(angle_rad)
+
+    if -90 < angle_deg < 0:
+      angle_deg -= 90
+    elif 0 < angle_deg < 90:
+      angle_deg += 90
+    elif -180 < angle_deg < -90:
+      angle_deg += 90
+    elif 90 < angle_deg < 180:
+      angle_deg -= 90
+
+    return angle_deg
+
 def create_cone_kernel(size, intensity_center=1.0, angle_start=-25, angle_end=25):
     """
     Creates a cone kernel within a specific angular range.
@@ -133,53 +161,79 @@ def create_cone_kernel(size, intensity_center=1.0, angle_start=-25, angle_end=25
     """
     kernel = np.zeros((size, size), dtype=np.float32)
 
-    # Calculate the center of the kernel
     center = ((size - 1) // 2, (size - 1) // 2)
-    
-    # Create a grid of distances and angles from the center
+
     for i in range(size):
         for j in range(size):
-            # The Euclidean distance from the center
+            
             dist = np.sqrt((i - center[0]) ** 2 + (j - center[1]) ** 2)
-            # Normalize the distance 
+            
             max_dist = np.sqrt(center[0] ** 2 + center[1] ** 2)
             normalized_dist = dist / max_dist
 
-            # Compute the angle for this point relative to the center
             angle = np.degrees(np.arctan2(i - center[0], j - center[1]))
-            
-            # Apply the mask to create a wedge by only including points within the angular range
+
             if angle_start <= angle <= angle_end:
-                # Compute the intensity as a function of distance (decreasing towards the edge)
                 kernel[i, j] = intensity_center * (1 - normalized_dist)
-            
+
     return kernel
 
-def rotate_kernel(kernel, angle):
-    h, w = kernel.shape
-    center = (w // 2, h // 2)
+def place_rotated_cone(endpoint, angle, kernel, mask):
+    x, y = endpoint[-1], endpoint[-2]
 
-    # Create the rotation matrix
-    rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1)  # (center, angle, scale)
+    # print(f"Placing cone at endpoint ({x}, {y}) with angle {angle} degrees")
 
-    # Perform the rotation
-    rotated_kernel = cv2.warpAffine(kernel, rotation_matrix, (w, h), flags=cv2.INTER_LINEAR)
+    rotated_kernel = rotate(kernel, angle, reshape=False, order=0)
+    rotated_kernel /= rotated_kernel.sum()
+    rotated_kernel = 10*rotated_kernel
 
-    return rotated_kernel
+    # # Debugging
+    # plt.imshow(rotated_kernel, cmap='gray')
+    # plt.title(f"Rotated Kernel at {angle} degrees")
+    # plt.show()
 
+    kernel_h, kernel_w = rotated_kernel.shape
 
-def find_nearest_skeleton_point(endpoint, skeleton_mask):
+    center_x = kernel_h // 2
+    center_y = kernel_w // 2
 
-    # Get the coordinates of all skeleton points
-    skeleton_points = np.argwhere(skeleton_mask > 0)
-    # Find the nearest skeleton point to the endpoint
-    nearest_point = skeleton_points[distance.cdist([endpoint], skeleton_points).argmin()]
-    
-    return nearest_point
+    for i in range(center_x):
+        for j in range(center_y):
+            
+            if -90 < angle <= 0:
+              mask_x = x + i
+              mask_y = y + j
 
-def calculate_line_angle(point1, point2):
-    delta_y = point2[1] - point1[1]
-    delta_x = point2[0] - point1[0]
-    angle_rad = np.arctan2(delta_y, delta_x)  # Use arctan2 for correct quadrant
-    angle_deg = np.degrees(angle_rad)  # Convert to degrees
-    return angle_deg
+              kernel_x = i + center_x
+              kernel_y = j + center_y
+
+            elif 0 < angle <= 90:
+              mask_x = x + i
+              mask_y = y - j
+
+              kernel_x = i + center_x
+              kernel_y = center_y - j
+
+            elif -180 < angle <= -90:
+              mask_x = x - i
+              mask_y = y + j
+
+              kernel_x = center_x - i
+              kernel_y = j + center_y
+
+            elif 90 < angle <= 180:
+              mask_x = x - i
+              mask_y = y - j
+
+              kernel_x = center_x - i
+              kernel_y = center_y - j
+
+            else:
+              
+              raise ValueError(f"Unexpected angle value: {angle}")
+
+            temp = rotated_kernel[kernel_y, kernel_x]
+            if 0 <= mask_x < mask.shape[1] and 0 <= mask_y < mask.shape[2]:
+              mask[:, mask_y, mask_x] += temp  
+
+    return mask
