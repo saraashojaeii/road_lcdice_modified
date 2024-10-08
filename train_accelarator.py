@@ -1,6 +1,7 @@
 from utils import *
 from data import *
 from Network import *
+from losses import *
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -19,7 +20,7 @@ num_gpus = accelerator.state.num_processes
 
 if logging:
     if accelerator.is_main_process:
-      wandb.init(project="modified_SemSeg_spacenet", entity="saraa_team", name='gap_4gpu_new')
+      wandb.init(project="Cone_SemSeg_spacenet", entity="saraa_team", name='cone_test')
 
 data_path = '/root/home/MD/'
 # data_path = '/home/sara/Docker_file/massachusetts-roads-dataset/'
@@ -42,13 +43,13 @@ print(f"The model has {num_params} trainable parameters.")
 device = accelerator.device
 
 model.to(device)
-epochs = 200
+epochs = 20
 
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-3)
 # gap_loss_fn = GapLoss(K=1)
 # mse_loss_fn = nn.MSELoss()
 
-criterion = GapLosswithL2()
+criterion = BCE_SACone_lcDice(2, 1, 0.4, 4/3, 0.8, 0.2, 0)
 
 
 arg_nottest = True
@@ -152,25 +153,14 @@ for epoch in range(0, epochs):
 
   if accelerator.is_main_process:
       
-    # all_comm_avg = accelerator.gather(torch.tensor(val_comm_avg))
-    # all_corr_avg = accelerator.gather(torch.tensor(val_corr_avg))
-    # all_qual_avg = accelerator.gather(torch.tensor(val_qual_avg))
-    # all_f1_avg = accelerator.gather(torch.tensor(val_f1))
-    
-    # avg_all_comm_avg = np.mean(all_comm_avg)
-    # avg_all_corr_avg = np.mean(all_corr_avg)
-    # avg_all_qual_avg = np.mean(all_qual_avg)
-    # avg_all_f1_avg = np.mean(all_f1_avg)
-    
-    # Log losses to WandB
   
     if logging:
         wandb.log({"Epoch": (epoch+1), "Training Loss": train_average, "Validation Loss": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg, "val_f1": val_f1})
-        os.makedirs('../saved_models', exist_ok=True)
-        torch.save(model.state_dict(), f'../saved_models/SemSeg_combinedloss_epoch{epoch+1}.pth')
-        artifact = wandb.Artifact(f'SemSeg_combinedloss_epoch{epoch+1}', type='model')
-        artifact.add_file(f'../saved_models/SemSeg_combinedloss_epoch{epoch+1}.pth')
-        wandb.log_artifact(artifact)
+        # os.makedirs('../saved_models', exist_ok=True)
+        # torch.save(model.state_dict(), f'../saved_models/SemSeg_combinedloss_epoch{epoch+1}.pth')
+        # artifact = wandb.Artifact(f'SemSeg_combinedloss_epoch{epoch+1}', type='model')
+        # artifact.add_file(f'../saved_models/SemSeg_combinedloss_epoch{epoch+1}.pth')
+        # wandb.log_artifact(artifact)
 
   print(f"Epoch: {epoch+1}, Training_loss: {train_average}, Validation_loss: {val_average}")
 

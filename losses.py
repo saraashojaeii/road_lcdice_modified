@@ -560,7 +560,7 @@ class BCE_SAC_lcDice(nn.Module):
 
 class BCE_SACone_lcDice(nn.Module):
     def __init__(self, num_classes, alpha, beta, phi, cel, ftl, lcl, K=3):
-        super(BCE_SAC_lcDice, self).__init__()
+        super(BCE_SACone_lcDice, self).__init__()
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -613,6 +613,10 @@ class BCE_SACone_lcDice(nn.Module):
             true_1_hot = torch.eye(num_classes, device=device)[true.squeeze(1)]
             true_1_hot = true_1_hot.permute(0, 3, 1, 2).float()
             probas = F.softmax(logits, dim=1)
+            
+            # Print shapes for debugging
+            print("Shape of probas:", probas.shape)  # Should be [batch_size, num_classes, height, width]
+            print("Shape of true_1_hot:", true_1_hot.shape) 
         true_1_hot = true_1_hot.type(logits.type())
         dims = (0,) + tuple(range(2, true.ndimension()))
         intersection = torch.sum(probas * true_1_hot, dims)
@@ -683,7 +687,7 @@ class BCE_SACone_lcDice(nn.Module):
         new_mask_tensor = torch.from_numpy(new_mask).to(pred.device)
 
         temp = torch.where(new_mask_tensor == 0, 1, 0)
-        W = new_mask + temp
+        W = new_mask_tensor + temp
     
         output = W * L
 
@@ -695,7 +699,10 @@ class BCE_SACone_lcDice(nn.Module):
         loss_seg = nn.CrossEntropyLoss(weight=self.weights(pred, target).cuda())
         ce_seg = loss_seg(pred, target_squeezed)
         
-        pred_weighted = self.GapMat(pred, target)
+        pred_weighted = self.ConeMat(pred, target)
+        pred_weighted = pred_weighted.unsqueeze(1) 
+        print("Shape of pred weight:", pred_weighted.shape)  # Should be [batch_size, num_classes, height, width]
+        print("Shape of target:", target.shape) 
         tv = self.tversky_loss(target, pred_weighted, alpha=self.alpha, beta=self.beta)
         
         # Ensure the target for lc_dice_loss is in the same shape as predictions

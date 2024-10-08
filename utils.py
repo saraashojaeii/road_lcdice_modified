@@ -237,3 +237,13 @@ def place_rotated_cone(endpoint, angle, kernel, mask):
               mask[:, mask_y, mask_x] += temp  
 
     return mask
+
+
+def get_relaxed_precision(a, b, buffer):
+    tp = 0
+    indices = np.where(a == 1)
+    for ind in range(len(indices[0])):
+        tp += (np.sum(
+            b[indices[0][ind]-buffer: indices[0][ind]+buffer+1,
+              indices[1][ind]-buffer: indices[1][ind]+buffer+1]) > 0).astype(np.int32)
+    return tp
