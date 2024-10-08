@@ -23,7 +23,7 @@ parser.add_argument("--runname", type=str, required=False)
 parser.add_argument("--dataset_name", type=str, required=True)
 parser.add_argument("--projectname", type=str, required=False)
 
-
+args = parser.parse_args()
 runname = args.runname
 projectname = args.projectname
 arg_dataset = args.dataset_name
