@@ -614,9 +614,6 @@ class BCE_SACone_lcDice(nn.Module):
             true_1_hot = true_1_hot.permute(0, 3, 1, 2).float()
             probas = F.softmax(logits, dim=1)
             
-            # Print shapes for debugging
-            print("Shape of probas:", probas.shape)  # Should be [batch_size, num_classes, height, width]
-            print("Shape of true_1_hot:", true_1_hot.shape) 
         true_1_hot = true_1_hot.type(logits.type())
         dims = (0,) + tuple(range(2, true.ndimension()))
         intersection = torch.sum(probas * true_1_hot, dims)
@@ -701,8 +698,6 @@ class BCE_SACone_lcDice(nn.Module):
         
         pred_weighted = self.ConeMat(pred, target)
         pred_weighted = pred_weighted.unsqueeze(1) 
-        print("Shape of pred weight:", pred_weighted.shape)  # Should be [batch_size, num_classes, height, width]
-        print("Shape of target:", target.shape) 
         tv = self.tversky_loss(target, pred_weighted, alpha=self.alpha, beta=self.beta)
         
         # Ensure the target for lc_dice_loss is in the same shape as predictions

@@ -9,6 +9,22 @@ import wandb
 from accelerate import Accelerator
 from accelerate.utils import DistributedDataParallelKwargs
 
+random.seed(0)
+np.random.seed(0)
+torch.manual_seed(0)
+
+parser = argparse.ArgumentParser(description="A script with argparse options")
+
+
+parser.add_argument("--runname", type=str, required=False)
+parser.add_argument("--dataset_name", type=str, required=True)
+parser.add_argument("--projectname", type=str, required=False)
+
+
+runname = args.runname
+projectname = args.projectname
+arg_dataset = args.dataset_name
+
 
 logging = True
 
@@ -20,18 +36,18 @@ num_gpus = accelerator.state.num_processes
 
 if logging:
     if accelerator.is_main_process:
-      wandb.init(project="Cone_SemSeg_spacenet", entity="saraa_team", name='cone_test')
+      wandb.init(project=projectname, entity="saraa_team", name=runname)
 
 data_path = '/root/home/MD/'
 # data_path = '/home/sara/Docker_file/massachusetts-roads-dataset/'
 
-train_images, train_masks = data_pred(data_path, 'train', 'spacenet')
-val_images, val_masks = data_pred(data_path, 'val', 'spacenet')
+train_images, train_masks = data_pred(data_path, 'train', arg_dataset)
+val_images, val_masks = data_pred(data_path, 'val', arg_dataset)
 
 train_dataset = DataPrep(train_images, train_masks, transform=transform)
 val_dataset = DataPrep(val_images, val_masks, transform=transform)
 
-BATCH_SIZE = 2
+BATCH_SIZE = 4
 
 train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0, pin_memory=False)
 val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=0)
@@ -43,7 +59,7 @@ print(f"The model has {num_params} trainable parameters.")
 device = accelerator.device
 
 model.to(device)
-epochs = 20
+epochs = 200
 
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-3)
 # gap_loss_fn = GapLoss(K=1)
@@ -156,13 +172,13 @@ for epoch in range(0, epochs):
   
     if logging:
         wandb.log({"Epoch": (epoch+1), "Training Loss": train_average, "Validation Loss": val_average, "val_comm_avg": val_comm_avg, "val_corr_avg": val_corr_avg, "val_qual_avg": val_qual_avg, "val_f1": val_f1})
-        # os.makedirs('../saved_models', exist_ok=True)
-        # torch.save(model.state_dict(), f'../saved_models/SemSeg_combinedloss_epoch{epoch+1}.pth')
-        # artifact = wandb.Artifact(f'SemSeg_combinedloss_epoch{epoch+1}', type='model')
-        # artifact.add_file(f'../saved_models/SemSeg_combinedloss_epoch{epoch+1}.pth')
-        # wandb.log_artifact(artifact)
+        os.makedirs('../saved_models', exist_ok=True)
+        torch.save(model.state_dict(), f'../saved_models/SemSeg_coneLoss_epoch{epoch+1}.pth')
+        artifact = wandb.Artifact(f'SemSeg_coneLoss_epoch{epoch+1}', type='model')
+        artifact.add_file(f'../saved_models/SemSeg_coneLoss_epoch{epoch+1}.pth')
+        wandb.log_artifact(artifact)
 
-  print(f"Epoch: {epoch+1}, Training_loss: {train_average}, Validation_loss: {val_average}")
+  # print(f"Epoch: {epoch+1}, Training_loss: {train_average}, Validation_loss: {val_average}")
 
 
   # if epoch%10==0:
