@@ -675,7 +675,7 @@ class BCE_SACone_lcDice(nn.Module):
             angle = calculate_angle_at_endpoint(endpoint, point_on_line)
             angles.append((endpoint, angle))
 
-        cone_kernel = create_cone_kernel(15, intensity_center=1.0)
+        cone_kernel = create_cone_kernel(27, intensity_center=1.0)
 
         new_mask = np.zeros_like(B_cpu[0])
         for endpoint, angle in angles:
