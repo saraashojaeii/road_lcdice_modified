@@ -151,30 +151,34 @@ def create_cone_kernel(size, intensity_center=1.0, angle_start=-25, angle_end=25
     Creates a cone kernel within a specific angular range.
 
     Parameters:
-    - size: The size of the kernel (15 x 15 as the defult)
+    - size: The size of the kernel (size x size).
     - intensity_center: The maximum intensity value at the center.
-    - angle_start: The starting angle of the cone (in degrees).
-    - angle_end: The ending angle of the cone (in degrees).
+    - angle_start: The starting angle of the wedge (in degrees).
+    - angle_end: The ending angle of the wedge (in degrees).
 
     Returns:
-    - cone_kernel: The generated cone kernel.
+    - wedge_cone_kernel: The generated wedge-shaped cone kernel.
     """
     kernel = np.zeros((size, size), dtype=np.float32)
-
     center = ((size - 1) // 2, (size - 1) // 2)
 
     for i in range(size):
         for j in range(size):
-            
-            dist = np.sqrt((i - center[0]) ** 2 + (j - center[1]) ** 2)
-            
+            dist = np.sqrt(12 * (i - center[0]) ** 2 + (j - center[1]) ** 2)
             max_dist = np.sqrt(center[0] ** 2 + center[1] ** 2)
             normalized_dist = dist / max_dist
+
+            norm_value = (1 - normalized_dist)
+            
+            if norm_value < 0:
+                norm_value = 0
 
             angle = np.degrees(np.arctan2(i - center[0], j - center[1]))
 
             if angle_start <= angle <= angle_end:
-                kernel[i, j] = intensity_center * (1 - normalized_dist)
+                kernel[i, j] = intensity_center * norm_value
+            else:
+                kernel[i, j] = 0
 
     return kernel
 
