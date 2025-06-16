@@ -106,7 +106,6 @@ To use it, simply open the notebook in a Jupyter environment and follow the inst
 - `--epochs`: The number of training epochs (default: 100).
 - `--nottest`: A flag to disable a test mode if implemented.
 
----
 ## Citation
 
 If you find this work useful, please consider citing the following paper:
