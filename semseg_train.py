@@ -5,13 +5,12 @@ import wandb
 import random
 import argparse
 
-from semseg_utils import *
-from unet_utils import *
-from UNet import *
-from utils import *
-from data import *
-from SemSeg_Network import *
-from losses import *
+from src.semseg_utils import *
+from src.unet_utils import *
+from src.data import *
+from src.losses import *
+from models.SemSeg_Network import *
+from models.Unet_Network import *
 
 random.seed(0)
 np.random.seed(0)

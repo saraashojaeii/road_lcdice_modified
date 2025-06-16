@@ -17,7 +17,7 @@ import random
 
 from semseg_utils import *
 from unet_utils import *
-from Unet_Network import *
+from models.Unet_Network import *
 
 
 data_path = '/root/home/MD/'

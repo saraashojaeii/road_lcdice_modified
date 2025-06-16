@@ -8,7 +8,8 @@ import glob
 from skimage.morphology import skeletonize
 from torch.nn.modules.loss import *
 from scipy.ndimage import distance_transform_edt
-from utils import *
+from unet_utils import *
+from semseg_utils import *
 
 def get_relaxed_precision(a, b, buffer):
     tp = 0

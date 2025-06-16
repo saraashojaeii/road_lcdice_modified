@@ -11,29 +11,48 @@ This project provides a flexible and powerful framework for semantic segmentatio
   - Tversky Loss
   - LcDice Loss (Log-Cosh Dice Loss)
   - Combinations like `BCE_Tversky`, `BCE_SAC_lcDice`, etc.
-- **Flexible Training**: The main training script (`semseg_train.py`) is highly configurable via command-line arguments, allowing for easy experimentation with different models, loss functions, and hyperparameters.
+- **Flexible Training**: The training scripts are highly configurable via command-line arguments, allowing for easy experimentation with different models, loss functions, and hyperparameters.
 - **Data Handling**: Includes scripts for data preparation and loading, designed to work with datasets like DeepGlobe.
 
-## File Structure
+## Project Structure
 
-Here is a breakdown of the key files in this project:
+The project is organized into a modular structure to improve clarity and maintainability:
 
-- `semseg_train.py`: The main script for training segmentation models. Use this for flexible configuration.
-- `unet_train.py`: A simpler script for training the U-Net model.
-- `SemSeg_Network.py`: Defines the attention-based semantic segmentation model.
-- `Unet_Network.py`: Defines the standard U-Net model architecture.
-- `losses.py`: Contains all the custom loss function implementations.
-- `data.py`: Handles data loading and preparation.
-- `semseg_utils.py` / `unet_utils.py`: Utility functions for training and data processing.
-- `README.md`: This file.
+```
+road_lcdice_modified/
+├── models/
+│   ├── SemSeg_Network.py
+│   └── Unet_Network.py
+├── src/
+│   ├── data.py
+│   ├── losses.py
+│   ├── semseg_utils.py
+│   ├── unet_train.py
+│   └── unet_utils.py
+├── semseg_train.py
+├── requirements.txt
+└── README.md
+```
+
+- **`semseg_train.py`**: The main script for training the Attention-based segmentation model.
+- **`src/unet_train.py`**: The script for training the U-Net model.
+- **`models/`**: Contains the model architectures.
+  - `SemSeg_Network.py`: Defines the attention-based semantic segmentation model.
+  - `Unet_Network.py`: Defines the standard U-Net model architecture.
+- **`src/`**: Contains supporting code.
+  - **`losses.py`**: Contains all the custom loss function implementations.
+  - **`data.py`**: Handles data loading and preparation.
+  - **`semseg_utils.py` / `unet_utils.py`**: Utility functions for training and data processing.
+- **`requirements.txt`**: Lists the project dependencies.
+- **`README.md`**: This file.
 
 ## Models
 
-### U-Net (`Unet_Network.py`)
+### U-Net (`models/Unet_Network.py`)
 
 A standard U-Net architecture, which is a convolutional neural network designed for fast and precise image segmentation. It consists of an encoder path to capture context and a symmetric decoder path that enables precise localization.
 
-### Attention-based Network (`SemSeg_Network.py`)
+### Attention-based Network (`models/SemSeg_Network.py`)
 
 A more advanced segmentation network that incorporates attention mechanisms and dilated convolutions. This allows the model to focus on more relevant features and capture multi-scale context, potentially leading to better performance on complex scenes.
 
@@ -49,15 +68,22 @@ pip install -r requirements.txt
 
 ### Training
 
-The primary training script is `semseg_train.py`. You can configure the training run using command-line arguments.
+You can train the models using their respective training scripts.
 
-**Example:**
+**Training the Attention-Based Model:**
 
-To train the model on the `deepglobe` dataset with the `BCE_SAC_lcDice` loss function for 150 epochs, you can run:
+To train the `SemSeg` model on the `deepglobe` dataset with the `BCE_SAC_lcDice` loss function for 150 epochs, you can run:
 
 ```bash
 python semseg_train.py --dataset_name deepglobe --loss BCE_SAC_lcDice --epochs 150 --k1 0.7 --k2 0.3 --k3 0.5
 ```
+
+**Training the U-Net Model:**
+
+```bash
+python src/unet_train.py
+```
+
 
 #### Command-Line Arguments for `semseg_train.py`:
 
