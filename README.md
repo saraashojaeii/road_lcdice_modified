@@ -23,6 +23,8 @@ road_lcdice_modified/
 ├── models/
 │   ├── SemSeg_Network.py
 │   └── Unet_Network.py
+├── pretrained_weights/
+│   └── ... (contains .pth model weights)
 ├── src/
 │   ├── data.py
 │   ├── losses.py
@@ -30,15 +32,18 @@ road_lcdice_modified/
 │   ├── unet_train.py
 │   └── unet_utils.py
 ├── semseg_train.py
+├── test_interface.ipynb
 ├── requirements.txt
 └── README.md
 ```
 
 - **`semseg_train.py`**: The main script for training the Attention-based segmentation model.
 - **`src/unet_train.py`**: The script for training the U-Net model.
+- **`test_interface.ipynb`**: A Jupyter Notebook to easily test models on new images using pretrained weights.
 - **`models/`**: Contains the model architectures.
   - `SemSeg_Network.py`: Defines the attention-based semantic segmentation model.
   - `Unet_Network.py`: Defines the standard U-Net model architecture.
+- **`pretrained_weights/`**: Contains pretrained model weights (`.pth` files) that can be loaded for inference.
 - **`src/`**: Contains supporting code.
   - **`losses.py`**: Contains all the custom loss function implementations.
   - **`data.py`**: Handles data loading and preparation.
@@ -84,6 +89,15 @@ python semseg_train.py --dataset_name deepglobe --loss BCE_SAC_lcDice --epochs 1
 python src/unet_train.py
 ```
 
+### Inference
+
+The `test_interface.ipynb` notebook provides an easy-to-use interface for running inference on your own images. It allows you to:
+
+1.  Load a pretrained model from the `pretrained_weights/` directory.
+2.  Input a new image.
+3.  Visualize the resulting segmentation mask.
+
+To use it, simply open the notebook in a Jupyter environment and follow the instructions in the cells.
 
 #### Command-Line Arguments for `semseg_train.py`:
 
