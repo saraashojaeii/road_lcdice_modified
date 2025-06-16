@@ -111,10 +111,15 @@ To use it, simply open the notebook in a Jupyter environment and follow the inst
 If you find this work useful, please consider citing the following paper:
 
 @inproceedings{shojaei2025adaptive,
+
   title={Adaptive Structure-Aware Connectivity-Preserving Loss for Improved Road Segmentation in Remote Sensing Images},
+
   author={Shojaei, Sara and Bohl, Trevor and Palaniappan, Kannappan and Bunyak, Filiz},
+
   booktitle={Proceedings of the Winter Conference on Applications of Computer Vision},
+
   pages={1210--1218},
+  
   year={2025}
 }
 
